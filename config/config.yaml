@@ -3,42 +3,42 @@ download_path: 'C:\Users\DANIEL\Desktop\carpeta'
 
 repos:
   - name: leia-workbench-frontend
-    url: git@github.com:leia-org/leia-workbench-frontend.git
+    url: https://github.com/leia-org/leia-workbench-frontend.git
     run: npm
     run_command: "npm run dev"
     branch: "git checkout develop"
     dependencies_instal: "npm ci"
 
   - name: leia-workbench-backend
-    url: git@github.com:leia-org/leia-workbench-backend.git
+    url: https://github.com/leia-org/leia-workbench-backend.git
     run: npm
     run_command: "npm run dev"
     branch: "git checkout develop"
     dependencies_instal: "npm ci"
 
   - name: leia-designer-frontend
-    url: git@github.com:leia-org/leia-designer-frontend.git
+    url: https://github.com/leia-org/leia-designer-frontend.git
     run: npm
     run_command: "npm run dev"
     branch: "git checkout develop"
     dependencies_instal: "npm ci"
 
   - name: leia-designer-backend
-    url: git@github.com:leia-org/leia-designer-backend.git
+    url: https://github.com/leia-org/leia-designer-backend.git
     run: npm
     run_command: "npm run dev"
     branch: "git checkout develop"
     dependencies_instal: "npm ci"
 
   - name: leia-auth
-    url: git@github.com:leia-org/leia-auth.git
+    url: https://github.com/leia-org/leia-auth.git
     run: npm
     run_command: "npm run dev"
     branch: "git checkout develop"
     dependencies_instal: "npm ci"
 
   - name: leia-runner
-    url: git@github.com:leia-org/leia-runner.git
+    url: https://github.com/leia-org/leia-runner.git
     run: npm
     run_command: "npm run dev"
     branch: "git checkout develop"
