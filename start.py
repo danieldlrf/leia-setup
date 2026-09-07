@@ -8,7 +8,7 @@ import sys
 def ensure_pyyaml_installed():
     """
     Comprueba si PyYAML está instalado; si no, lo instala con pip
-    antes de que el resto del programa intente importarlo.
+    antes de que el resto del programa intente importarlo
     """
     try:
         importlib.import_module("yaml")
