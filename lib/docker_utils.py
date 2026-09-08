@@ -105,10 +105,21 @@ def start_services(config_path: str = "config/config.yaml"):
         comando = comando.replace("{download_path}", download_path)
         utils.run_command(comando)
 
-def _find_pid_using_port(port: int) -> str | None:
+def _find_container_using_port(port: int) -> str | None:
+    """
+    Busca si hay un contenedor Docker (cualquiera) usando ese puerto,
+    y devuelve su nombre si lo encuentra (string vacío si no hay ninguno).
+    """
+    salida = utils.run_command(
+        f'docker ps --filter "publish={port}" --format {{{{.Names}}}}',
+        stop_on_error=False
+    )
+    return salida.strip()
+
+def _find_pid_using_port(port: int) -> str:
     """
     Busca el PID del proceso que está usando un puerto concreto.
-    Devuelve el PID como string, o None si el puerto está libre.
+    Devuelve el PID como string, o "" si el puerto está libre.
     """
     if utils.is_windows():
         salida = utils.run_command(f"netstat -ano | findstr :{port}", stop_on_error=False)
@@ -120,14 +131,19 @@ def _find_pid_using_port(port: int) -> str | None:
 
     return salida.split()[-1]
 
-
-def _kill_process(pid: str):
+def _kill_process(container: str):
     """
-    Mata el proceso con ese PID.
+    Mata el proceso.
+    """
+    utils.run_command(f"docker stop {container}", stop_on_error=False)
+
+def _kill_pid(pid: str):
+    """
+    Mata el proceso (no-Docker) con ese PID.
     """
     if utils.is_windows():
         return utils.run_command(f"taskkill /PID {pid} /F", stop_on_error=False)
-    else: 
+    else:
         return utils.run_command(f"kill -9 {pid}", stop_on_error=False)
 
 
@@ -139,17 +155,28 @@ def free_required_ports(config_path: str = "config/config.yaml"):
     """
     for serv in _load_docker_services(config_path):
         for port in serv["ports"]:
-            pid = _find_pid_using_port(port)
-            if pid != "":
-                print(f"⚠️ El puerto {port} (necesario para '{serv['name']}') está ocupado por el proceso PID {pid}.")
-                res = input(f"¿Quieres matar el proceso {pid} para liberar el puerto {port}? (y/n): ").strip()
+            container = _find_container_using_port(port)
+            if container != "":
+                print(f"⚠️ El puerto {port} (necesario para '{serv['name']}') está ocupado por el contenedor {container}.")
+                res = input(f"¿Quieres parar el contenedor {container} para liberar el puerto {port}? (y/n): ").strip()
                 while res != "y" and res != "n":
-                    res = input(f"Respuesta no válida. ¿Matar el proceso {pid}? (y/n): ").strip()
+                    res = input(f"Respuesta no válida. ¿Parar el contenedor {container}? (y/n): ").strip()
 
                 if res == "y":
-                    _kill_process(pid)
-                    print(f"✔ Proceso {pid} finalizado. Puerto {port} liberado.")
+                    _kill_process(container)
+                    print(f"✔ Contenedor {container} detenido. Puerto {port} liberado.")
                 else:
                     print(f"Saltando. El puerto {port} sigue ocupado, '{serv['name']}' podría fallar al arrancar.")
             else:
-                pass
+                pid = _find_pid_using_port(port)
+                if pid != "":
+                    print(f"⚠️ El puerto {port} (necesario para '{serv['name']}') está ocupado por el proceso PID {pid}.")
+                    res = input(f"¿Quieres matar el proceso {pid} para liberar el puerto {port}? (y/n): ").strip()
+                    while res != "y" and res != "n":
+                        res = input(f"Respuesta no válida. ¿Matar el proceso {pid}? (y/n): ").strip()
+
+                    if res == "y":
+                        _kill_pid(pid)
+                        print(f"✔ Proceso {pid} finalizado. Puerto {port} liberado.")
+                    else:
+                        print(f"Saltando. El puerto {port} sigue ocupado, '{serv['name']}' podría fallar al arrancar.")
